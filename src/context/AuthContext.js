@@ -8,7 +8,8 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { auth } from "../firebase/config";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "../firebase/config";
 
 const AuthContext = createContext();
 
@@ -31,8 +32,20 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  const signup = (email, password) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+  const signup = async (email, password) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    // Create a new shop document with the user's ID
+    const shopRef = doc(db, "shops", user.uid);
+    await setDoc(shopRef, {
+      ownerId: user.uid,
+      shopName: "", // Starts with an empty name
+      createdAt: new Date(),
+      tempId: `SHOP_${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+    });
+
+    return userCredential;
   };
 
   const login = (email, password) => {
