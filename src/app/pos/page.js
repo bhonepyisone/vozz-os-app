@@ -14,6 +14,7 @@ const menuItems = [
 
 export default function POSPage() {
   const [cart, setCart] = useState([]);
+  const [showSuccess, setShowSuccess] = useState(false);
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const addToCart = (item) => {
@@ -28,6 +29,16 @@ export default function POSPage() {
       }
       return [...currentCart, { ...item, quantity: 1 }];
     });
+  };
+
+  const handleCharge = () => {
+    if (cart.length === 0) return;
+    // In a real app, this would process payment and save the order to Firestore
+    console.log("Order charged:", { cart, total });
+    
+    setCart([]); // Clear the cart
+    setShowSuccess(true); // Show success message
+    setTimeout(() => setShowSuccess(false), 2000); // Hide after 2 seconds
   };
 
   return (
@@ -65,8 +76,8 @@ export default function POSPage() {
             <span>Total</span>
             <span>${total.toFixed(2)}</span>
           </div>
-          <button onClick={() => alert('Checkout functionality not yet implemented.')} className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-bold hover:bg-green-700">
-            Charge
+          <button onClick={handleCharge} disabled={cart.length === 0} className="w-full bg-green-600 text-white py-3 rounded-lg text-lg font-bold hover:bg-green-700 disabled:bg-gray-400">
+            {showSuccess ? 'Success!' : 'Charge'}
           </button>
         </div>
       </div>
