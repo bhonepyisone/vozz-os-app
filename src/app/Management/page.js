@@ -7,7 +7,7 @@ export default function ManagementPage() {
       <div className="p-8 bg-white rounded-lg shadow-md text-center">
         <h1 className="text-3xl font-bold text-green-700">Management Area</h1>
         <p className="mt-4 text-gray-600">
-          This page is only visible to users with the 'Management' role.
+          This page is only visible to users with the &apos;Management&apos; role.
         </p>
         <div className="mt-8">
           <Link href="/dashboard" className="text-indigo-600 hover:underline">
