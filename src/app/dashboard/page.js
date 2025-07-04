@@ -25,44 +25,48 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
+    if (loading) return; // Wait for auth to resolve
+    if (!user) {
+      router.push("/login"); // If no user, redirect
       return;
     }
 
-    if (user) {
-      const fetchShopData = async () => {
-        setShopLoading(true);
-        try {
-          const shopRef = doc(db, "shops", user.uid);
-          const shopSnap = await getDoc(shopRef);
+    const fetchShopData = async () => {
+      setShopLoading(true);
+      try {
+        const shopRef = doc(db, "shops", user.uid);
+        const shopSnap = await getDoc(shopRef);
 
-          if (shopSnap.exists()) {
-            const shopData = shopSnap.data();
-            if (shopData.shopName === "") {
-              router.push("/setup");
-            } else {
-              setShop(shopData);
-              // Find the current user's role in the roles array
-              const currentUserRole = shopData.roles?.find(r => r.uid === user.uid);
+        if (shopSnap.exists()) {
+          const shopData = shopSnap.data();
+          if (shopData.shopName === "") {
+            router.push("/setup");
+          } else {
+            setShop(shopData);
+            // More robustly check for the roles array and find the user's role
+            if (Array.isArray(shopData.roles)) {
+              const currentUserRole = shopData.roles.find(r => r.uid === user.uid);
               if (currentUserRole) {
                 setUserRole(currentUserRole.role);
+              } else {
+                setUserRole(null); // Explicitly set to null if not found
               }
             }
-          } else {
-            router.push("/setup");
           }
-        } catch (error) {
-          console.error("Error fetching shop data:", error);
-          await handleLogout();
-        } finally {
-          setShopLoading(false);
+        } else {
+          // Fallback if shop doc doesn't exist for some reason
+          router.push("/setup");
         }
-      };
+      } catch (error) {
+        console.error("Error fetching shop data:", error);
+        await handleLogout();
+      } finally {
+        setShopLoading(false);
+      }
+    };
 
-      fetchShopData();
-    }
-  }, [user, loading, router]);
+    fetchShopData();
+  }, [user, loading]); // Simplified and more stable dependencies
 
   if (loading || isShopLoading) {
     return (
@@ -73,7 +77,7 @@ export default function DashboardPage() {
   }
 
   if (!user || !shop) {
-    return null;
+    return null; // Render nothing while redirecting
   }
 
   return (
