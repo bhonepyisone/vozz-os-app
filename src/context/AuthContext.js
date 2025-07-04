@@ -42,7 +42,11 @@ export const AuthProvider = ({ children }) => {
       ownerId: user.uid,
       shopName: "", // Starts with an empty name
       createdAt: new Date(),
-      tempId: `SHOP_${Math.random().toString(36).substr(2, 4).toUpperCase()}` // e.g., SHOP_8X2A
+      tempId: `SHOP_${Math.random().toString(36).substr(2, 4).toUpperCase()}`, // e.g., SHOP_8X2A
+      // Add a roles array. The first user is automatically 'Management'.
+      roles: [
+        { uid: user.uid, email: user.email, role: 'Management' }
+      ]
     });
 
     return userCredential;
