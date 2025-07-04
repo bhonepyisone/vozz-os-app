@@ -22,23 +22,16 @@ export default function ManagementLayout({ children }) {
       return;
     }
 
-    // Check the user's role from the database
+    // Check the user's role from their own user document
     const checkRole = async () => {
-      const shopRef = doc(db, "shops", user.uid);
-      const shopSnap = await getDoc(shopRef);
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
 
-      if (shopSnap.exists()) {
-        const shopData = shopSnap.data();
-        const currentUserRole = shopData.roles?.find(r => r.uid === user.uid);
-        
-        // Only allow access if the role is 'Management'
-        if (currentUserRole?.role === 'Management') {
-          setIsAuthorized(true);
-        } else {
-          router.push("/dashboard"); // If wrong role, send to dashboard
-        }
+      if (userSnap.exists() && userSnap.data().role === 'Management') {
+        setIsAuthorized(true);
       } else {
-        router.push("/dashboard"); // If no shop data, send to dashboard
+        // If not a manager, send to dashboard
+        router.push("/dashboard");
       }
     };
 
