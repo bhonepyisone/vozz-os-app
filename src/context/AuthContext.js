@@ -8,7 +8,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
 
 const AuthContext = createContext();
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
       ownerId: user.uid,
       shopName: "", // Starts with an empty name
       createdAt: new Date(),
-      tempId: `SHOP_${Math.random().toString(36).substring(2, 6).toUpperCase()}`
+      tempId: `SHOP_${Math.random().toString(36).substr(2, 4).toUpperCase()}` // e.g., SHOP_8X2A
     });
 
     return userCredential;

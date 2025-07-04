@@ -14,7 +14,6 @@ export default function DashboardPage() {
   const [isShopLoading, setShopLoading] = useState(true);
 
   useEffect(() => {
-    // Redirect if not logged in
     if (!loading && !user) {
       router.push("/login");
       return;
@@ -22,10 +21,10 @@ export default function DashboardPage() {
 
     if (user) {
       const fetchShopData = async () => {
-        setShopLoading(true);
         const shopRef = doc(db, "shops", user.uid);
         const shopSnap = await getDoc(shopRef);
-        
+        setShopLoading(false);
+
         if (shopSnap.exists()) {
           const shopData = shopSnap.data();
           if (!shopData.shopName) {
@@ -35,12 +34,10 @@ export default function DashboardPage() {
             setShop(shopData);
           }
         } else {
-          // This case can happen if signup failed to create a shop doc
-          // or for users created before this feature was added.
-          console.error("Shop document not found! Redirecting to setup.");
+          // This case might happen if signup failed to create a shop doc
+          console.error("Shop document not found!");
           router.push("/setup");
         }
-        setShopLoading(false);
       };
 
       fetchShopData();
@@ -48,39 +45,33 @@ export default function DashboardPage() {
   }, [user, loading, router]);
 
   if (loading || isShopLoading) {
-    return (
-        <main className="flex min-h-screen flex-col items-center justify-center">
-            <p>Loading...</p>
-        </main>
-    );
+    return <p>Loading...</p>;
   }
 
-  // While redirecting, don't show anything
-  if (!shop) {
+  if (!user || !shop) {
+    // This state is temporary while redirecting
     return null;
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-50">
-      <div className="text-center p-8 bg-white shadow-lg rounded-lg">
-        <h1 className="text-4xl font-bold text-gray-800">
+    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold">
           {shop.shopName}
         </h1>
         <p className="mt-2 text-lg text-gray-500">Dashboard</p>
-        <div className="mt-8 border-t pt-6">
-            <p className="text-lg text-gray-700">
-            Welcome, <span className="font-semibold">{user.email}</span>!
-            </p>
-            <p className="mt-2 text-sm text-gray-400">
-            Temporary Shop ID: {shop.tempId}
-            </p>
-        </div>
+        <p className="mt-8 text-lg text-gray-600">
+          Welcome, {user.email}!
+        </p>
+         <p className="mt-2 text-sm text-gray-400">
+          Temporary Shop ID: {shop.tempId}
+        </p>
         <button
           onClick={() => {
             logout();
             router.push('/login');
           }}
-          className="mt-8 px-6 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          className="mt-8 px-6 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
         >
           Log Out
         </button>

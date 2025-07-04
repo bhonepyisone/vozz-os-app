@@ -26,15 +26,11 @@ export default function LoginPage() {
 
   const handleSignup = async () => {
     setError(null);
-    if (!email || !password) {
-        setError("Email and password cannot be empty.");
-        return;
-    }
     try {
       await signup(email, password);
       router.push("/dashboard");
     } catch (err) {
-      setError("Failed to sign up. Password must be at least 6 characters.");
+      setError("Failed to sign up. Your password must be at least 6 characters long.");
       console.error(err);
     }
   };
@@ -45,7 +41,7 @@ export default function LoginPage() {
         <h1 className="text-3xl font-bold text-center text-gray-900">
           Vozz OS Portal
         </h1>
-        {error && <p className="text-red-500 text-center py-2">{error}</p>}
+        {error && <p className="text-red-500 text-center">{error}</p>}
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label
