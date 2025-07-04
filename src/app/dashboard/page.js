@@ -33,37 +33,38 @@ export default function DashboardPage() {
 
     const fetchData = async () => {
       setIsLoading(true);
-      // 1. Fetch the user's document to get their shopId and role
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
+      try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
 
-      if (!userSnap.exists()) {
-        // This could happen if user doc creation failed.
-        // Send to login to be safe.
+        if (!userSnap.exists()) {
+          await handleLogout();
+          return;
+        }
+
+        const fetchedUserData = userSnap.data();
+        setUserData(fetchedUserData);
+
+        if (!fetchedUserData.shopId) {
+          router.push("/setup");
+          return;
+        }
+
+        const shopRef = doc(db, "shops", fetchedUserData.shopId);
+        const shopSnap = await getDoc(shopRef);
+
+        if (shopSnap.exists()) {
+          setShop(shopSnap.data());
+        } else {
+          console.error("Shop not found, but user has a shopId.");
+          await handleLogout();
+        }
+      } catch (error) {
+        console.error("Failed to fetch data, likely a permissions issue:", error);
         await handleLogout();
-        return;
+      } finally {
+        setIsLoading(false);
       }
-
-      const fetchedUserData = userSnap.data();
-      setUserData(fetchedUserData);
-
-      // 2. Check if the user has a shop. If not, send to setup.
-      if (!fetchedUserData.shopId) {
-        router.push("/setup");
-        return;
-      }
-
-      // 3. Use the shopId to fetch the shop's data
-      const shopRef = doc(db, "shops", fetchedUserData.shopId);
-      const shopSnap = await getDoc(shopRef);
-
-      if (shopSnap.exists()) {
-        setShop(shopSnap.data());
-      } else {
-        console.error("Shop not found, but user has a shopId.");
-        await handleLogout(); // Log out if data is inconsistent
-      }
-      setIsLoading(false);
     };
 
     fetchData();
