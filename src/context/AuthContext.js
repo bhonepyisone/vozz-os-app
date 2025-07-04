@@ -36,17 +36,13 @@ export const AuthProvider = ({ children }) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Create a new shop document with the user's ID
-    const shopRef = doc(db, "shops", user.uid);
-    await setDoc(shopRef, {
-      ownerId: user.uid,
-      shopName: "", // Starts with an empty name
-      createdAt: new Date(),
-      tempId: `SHOP_${Math.random().toString(36).substr(2, 4).toUpperCase()}`, // e.g., SHOP_8X2A
-      // Add a roles array. The first user is automatically 'Management'.
-      roles: [
-        { uid: user.uid, email: user.email, role: 'Management' }
-      ]
+    // Create a new user document. This user has no shop or role yet.
+    const userRef = doc(db, "users", user.uid);
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email,
+      role: null,
+      shopId: null,
     });
 
     return userCredential;

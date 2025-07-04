@@ -12,8 +12,8 @@ export default function DashboardPage() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const [shop, setShop] = useState(null);
-  const [userRole, setUserRole] = useState(null);
-  const [isShopLoading, setShopLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const handleLogout = async () => {
     try {
@@ -25,50 +25,51 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
-    if (loading) return; // Wait for auth to resolve
+    if (loading) return;
     if (!user) {
-      router.push("/login"); // If no user, redirect
+      router.push("/login");
       return;
     }
 
-    const fetchShopData = async () => {
-      setShopLoading(true);
-      try {
-        const shopRef = doc(db, "shops", user.uid);
-        const shopSnap = await getDoc(shopRef);
+    const fetchData = async () => {
+      setIsLoading(true);
+      // 1. Fetch the user's document to get their shopId and role
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
 
-        if (shopSnap.exists()) {
-          const shopData = shopSnap.data();
-          if (shopData.shopName === "") {
-            router.push("/setup");
-          } else {
-            setShop(shopData);
-            // More robustly check for the roles array and find the user's role
-            if (Array.isArray(shopData.roles)) {
-              const currentUserRole = shopData.roles.find(r => r.uid === user.uid);
-              if (currentUserRole) {
-                setUserRole(currentUserRole.role);
-              } else {
-                setUserRole(null); // Explicitly set to null if not found
-              }
-            }
-          }
-        } else {
-          // Fallback if shop doc doesn't exist for some reason
-          router.push("/setup");
-        }
-      } catch (error) {
-        console.error("Error fetching shop data:", error);
+      if (!userSnap.exists()) {
+        // This could happen if user doc creation failed.
+        // Send to login to be safe.
         await handleLogout();
-      } finally {
-        setShopLoading(false);
+        return;
       }
+
+      const fetchedUserData = userSnap.data();
+      setUserData(fetchedUserData);
+
+      // 2. Check if the user has a shop. If not, send to setup.
+      if (!fetchedUserData.shopId) {
+        router.push("/setup");
+        return;
+      }
+
+      // 3. Use the shopId to fetch the shop's data
+      const shopRef = doc(db, "shops", fetchedUserData.shopId);
+      const shopSnap = await getDoc(shopRef);
+
+      if (shopSnap.exists()) {
+        setShop(shopSnap.data());
+      } else {
+        console.error("Shop not found, but user has a shopId.");
+        await handleLogout(); // Log out if data is inconsistent
+      }
+      setIsLoading(false);
     };
 
-    fetchShopData();
-  }, [user, loading]); // Simplified and more stable dependencies
+    fetchData();
+  }, [user, loading, router]);
 
-  if (loading || isShopLoading) {
+  if (isLoading) {
     return (
         <main className="flex min-h-screen flex-col items-center justify-center">
             <p>Loading...</p>
@@ -76,26 +77,20 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user || !shop) {
-    return null; // Render nothing while redirecting
-  }
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="text-center bg-white p-10 rounded-lg shadow-lg">
         <h1 className="text-4xl font-bold">
-          {shop.shopName}
+          {shop?.shopName || "Shop"}
         </h1>
         <p className="mt-2 text-lg text-gray-500">Dashboard</p>
         
         <div className="mt-8 text-left border-t pt-6">
             <p className="text-lg"><span className="font-semibold">Welcome:</span> {user.email}</p>
-            <p className="text-lg"><span className="font-semibold">Your Role:</span> <span className="font-bold text-indigo-600">{userRole || 'Not Assigned'}</span></p>
-            <p className="text-sm text-gray-400 mt-1"><span className="font-semibold">Shop ID:</span> {shop.tempId}</p>
+            <p className="text-lg"><span className="font-semibold">Your Role:</span> <span className="font-bold text-indigo-600">{userData?.role || 'Not Assigned'}</span></p>
         </div>
 
-        {/* This link will only be shown to users with the 'Management' role */}
-        {userRole === 'Management' && (
+        {userData?.role === 'Management' && (
             <div className="mt-6 border-t pt-6">
                 <Link href="/management" className="px-6 py-3 text-lg font-medium text-white bg-green-600 rounded-md hover:bg-green-700">
                     Go to Management Area

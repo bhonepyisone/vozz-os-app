@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/firebase/config";
 
 export default function SetupPage() {
@@ -28,13 +28,26 @@ export default function SetupPage() {
     }
 
     try {
+      // 1. Create the new shop document
       const shopRef = doc(db, "shops", user.uid);
-      await updateDoc(shopRef, {
+      await setDoc(shopRef, {
+        ownerId: user.uid,
         shopName: shopName.trim(),
+        createdAt: new Date(),
+        tempId: `SHOP_${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+        roles: [{ uid: user.uid, email: user.email, role: 'Management' }]
       });
+
+      // 2. Update the user's document with their new shop and role
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, {
+        shopId: user.uid, // The shopId is the owner's UID
+        role: 'Management'
+      });
+
       router.push("/dashboard");
     } catch (err) {
-      setError("Failed to update shop name. Please try again.");
+      setError("Failed to create shop. Please try again.");
       console.error(err);
     }
   };
