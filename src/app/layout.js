@@ -1,15 +1,13 @@
 // File: src/app/layout.js
 "use client";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
-import "./globals.css"; // Keep this
+import { AuthProvider, useAuth } from "@/context/AuthContext"; // Corrected import
+import "./globals.css";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/firebase/config";
 import Sidebar from "@/components/Sidebar";
 import TopNav from "@/components/TopNav";
-
-// Font Awesome - Add this to load the icons
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 export default function RootLayout({ children }) {
@@ -40,7 +38,7 @@ function AppContent({ children }) {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      if (pathname !== '/login') {
+      if (pathname !== '/login' && pathname !== '/setup') {
         router.push('/login');
       }
       setIsDataLoading(false);
