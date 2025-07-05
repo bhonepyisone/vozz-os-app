@@ -11,7 +11,6 @@ import { doc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/firebase/config";
 
 const AuthContext = createContext();
-
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
@@ -39,13 +38,8 @@ export const AuthProvider = ({ children }) => {
     return userCredential;
   };
 
-  const login = (email, password) => {
-    return signInWithEmailAndPassword(auth, email, password);
-  };
-
-  const logout = async () => {
-    await signOut(auth);
-  };
+  const login = (email, password) => signInWithEmailAndPassword(auth, email, password);
+  const logout = async () => await signOut(auth);
 
   const value = { user, loading, signup, login, logout };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
