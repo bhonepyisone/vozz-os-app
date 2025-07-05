@@ -4,31 +4,32 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navLinks = [
-  { name: 'Dashboard', href: '/dashboard', role: ['Management', 'Front Desk', 'Staff'] },
-  { name: 'Point of Sale', href: '/pos', role: ['Management', 'Front Desk', 'Staff'] },
-  { name: 'Inventory', href: '/inventory', role: ['Management', 'Front Desk'] },
-  { name: 'Management', href: '/management', role: ['Management'] },
+  { name: 'Dashboard', href: '/dashboard', icon: 'fa-tachometer-alt', roles: ['Management', 'Front Desk', 'Staff'] },
+  { name: 'Point of Sale', href: '/pos', icon: 'fa-cash-register', roles: ['Management', 'Front Desk', 'Staff'] },
+  { name: 'Inventory', href: '/inventory', icon: 'fa-boxes', roles: ['Management', 'Front Desk'] },
+  { name: 'Management', href: '/management', icon: 'fa-user-shield', roles: ['Management'] },
 ];
 
-export default function Sidebar({ userRole, onLogout }) {
+export default function Sidebar({ userRole }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col w-64 h-screen px-4 py-8 bg-sidebar-bg border-r">
-      <h2 className="text-3xl font-semibold text-white">Vozz OS</h2>
-      <div className="flex flex-col justify-between flex-1 mt-6">
+    <div className="flex flex-col w-64 bg-indigo-800 text-white h-screen fixed top-0 left-0 pt-16">
+      <div className="overflow-y-auto h-full pb-20 px-4 py-4">
         <nav>
-          {navLinks.map((link) => (
-            link.role.includes(userRole) && (
-              <Link key={link.name} href={link.href} className={`flex items-center px-4 py-2 mt-5 rounded-md transition-colors duration-300 transform ${pathname === link.href ? 'bg-sidebar-active text-white' : 'text-sidebar-text hover:bg-sidebar-hover hover:text-gray-200'}`}>
-                <span className="mx-4 font-medium">{link.name}</span>
-              </Link>
-            )
-          ))}
+          <ul className="space-y-2">
+            {navLinks.map((link) => (
+              (userRole && link.roles.includes(userRole)) && (
+                <li key={link.name}>
+                  <Link href={link.href} className={`flex items-center px-4 py-3 rounded-lg transition ${pathname === link.href ? 'bg-indigo-700' : 'hover:bg-indigo-700'}`}>
+                    <i className={`fas ${link.icon} mr-3`}></i>
+                    <span>{link.name}</span>
+                  </Link>
+                </li>
+              )
+            ))}
+          </ul>
         </nav>
-        <button onClick={onLogout} className="w-full px-4 py-2 mt-5 font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring focus:ring-red-300 focus:ring-opacity-80">
-          Log Out
-        </button>
       </div>
     </div>
   );

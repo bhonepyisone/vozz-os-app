@@ -27,20 +27,23 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-      <p className="mt-2 text-gray-600">Welcome back to {shop?.shopName || "your shop"}!</p>
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="font-semibold text-lg">Today&apos;s Sales</h3>
-          <p className="text-3xl font-bold mt-2">$0.00</p>
+      <h2 class="text-2xl font-bold text-gray-800">Dashboard Overview</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+        <div class="bg-white rounded-lg shadow p-6">
+          <p class="text-gray-500 text-sm">Total Sales</p>
+          <h3 class="text-2xl font-bold mt-1">$0.00</h3>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="font-semibold text-lg">Active Staff</h3>
-          <p className="text-3xl font-bold mt-2">{shop?.roles?.length || 0}</p>
+        <div class="bg-white rounded-lg shadow p-6">
+          <p class="text-gray-500 text-sm">Active Staff</p>
+          <h3 class="text-2xl font-bold mt-1">{shop?.roles?.length || 0}</h3>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="font-semibold text-lg">Inventory Items</h3>
-          <p className="text-3xl font-bold mt-2">0</p>
+        <div class="bg-white rounded-lg shadow p-6">
+          <p class="text-gray-500 text-sm">Inventory Items</p>
+          <h3 class="text-2xl font-bold mt-1">0</h3>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+          <p class="text-gray-500 text-sm">Pending Orders</p>
+          <h3 class="text-2xl font-bold mt-1">0</h3>
         </div>
       </div>
     </div>

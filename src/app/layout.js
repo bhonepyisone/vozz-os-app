@@ -1,12 +1,16 @@
 // File: src/app/layout.js
 "use client";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-import "./globals.css";
-import Sidebar from "@/components/Sidebar";
-import { useRouter, usePathname } from "next/navigation";
+import "./globals.css"; // Keep this
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/firebase/config";
+import Sidebar from "@/components/Sidebar";
+import TopNav from "@/components/TopNav";
+
+// Font Awesome - Add this to load the icons
+import "@fortawesome/fontawesome-free/css/all.min.css";
 
 export default function RootLayout({ children }) {
   return (
@@ -25,6 +29,8 @@ function AppContent({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const [userData, setUserData] = useState(null);
+  const [shopData, setShopData] = useState(null);
+  const [isDataLoading, setIsDataLoading] = useState(true);
 
   const handleLogout = async () => {
     await logout();
@@ -34,45 +40,60 @@ function AppContent({ children }) {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      if (pathname !== '/login' && pathname !== '/setup') {
+      if (pathname !== '/login') {
         router.push('/login');
       }
+      setIsDataLoading(false);
       return;
     }
 
-    const fetchUserData = async () => {
+    const fetchData = async () => {
+      setIsDataLoading(true);
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
+
       if (userSnap.exists()) {
-        const data = userSnap.data();
-        setUserData(data);
-        if (!data.shopId && pathname !== '/setup') {
-            router.push('/setup');
+        const uData = userSnap.data();
+        setUserData(uData);
+        if (uData.shopId) {
+          const shopRef = doc(db, "shops", uData.shopId);
+          const shopSnap = await getDoc(shopRef);
+          if (shopSnap.exists()) {
+            setShopData(shopSnap.data());
+          }
+        } else {
+          if (pathname !== '/setup') router.push('/setup');
         }
       }
+      setIsDataLoading(false);
     };
-    fetchUserData();
+    fetchData();
   }, [user, loading, pathname, router]);
 
-  const noSidebarRoutes = ['/login', '/setup'];
-  if (noSidebarRoutes.includes(pathname) || !user) {
+  const noAppShellRoutes = ['/login', '/setup'];
+  if (noAppShellRoutes.includes(pathname) || !user) {
     return <>{children}</>;
   }
 
-  if (loading || !userData) {
+  if (isDataLoading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center h-screen bg-gray-100">
         <p>Loading Application...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex">
-      <Sidebar userRole={userData.role} onLogout={handleLogout} />
-      <main className="flex-1 p-10 bg-gray-100 h-screen overflow-y-auto">
-        {children}
-      </main>
+    <div className="flex bg-gray-50">
+      <Sidebar userRole={userData?.role} />
+      <div className="flex-1 ml-64">
+        <TopNav shopName={shopData?.shopName} user={user} onLogout={handleLogout} />
+        <main className="pt-16">
+          <div className="p-6">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
